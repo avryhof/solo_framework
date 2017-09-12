@@ -1,0 +1,21 @@
+{
+    "name": "avryhof/solo_framework",
+    "description": "Django-like pieces for Symphony",
+    "type": "library",
+    "keywords": ["symphony","django","crud"],
+    "homepage": "https://github.com/avryhof/solo_framework",
+    "license": "MIT",
+    "authors": [
+        {
+            "email": "amos@vryhofresearch.com",
+            "name": "Amos Vryhof"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+		    "classmap" : ["py/python_constants.php","py/os.php","lib/database.php","lib/model_class.php"]
+    },
+    "include-path": [""]
+}
