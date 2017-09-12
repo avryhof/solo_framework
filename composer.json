@@ -15,7 +15,7 @@
         "php": ">=7.0.0"
     },
     "autoload": {
-		    "classmap" : ["py/python_constants.php","py/os.php","lib/database.php","lib/model_class.php"]
+		    "classmap" : ["py/python_constants.php","py/os.php","lib/database.php","lib/model_class.php", "solo.php"]
     },
     "include-path": [""]
 }
