@@ -14,6 +14,7 @@ possible.
 ## Ingredients
 My goal is to stick to Symphony Components, and libraries that can be installed and managed with Composer, since we 
 don't have PIP
+
 ##### External Requirements
 - Twig
 - Silex

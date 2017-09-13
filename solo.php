@@ -27,25 +27,48 @@ class Solo {
         }
     }
 
+    function app_dir($app_name) {
+        return implode(DIRECTORY_SEPARATOR, [$this->base_dir, $app_name]);
+    }
+
     function find_app_dirs() {
         if (defined('INSTALLED_APPS')) {
             foreach (constant('INSTALLED_APPS') as $installed_app) {
-                $app_dir = $this->base_dir . DIRECTORY_SEPARATOR . $installed_app . DIRECTORY_SEPARATOR;
-                $this->app_dirs[] = $app_dir;
+                array_push($this->app_dirs[], $this->app_dir($installed_app));
             }
         }
     }
 
     function find_template_dirs() {
-        foreach (constant('INSTALLED_APPS') as $installed_app) {
-            $app_dir = $this->base_dir . DIRECTORY_SEPARATOR . $installed_app . DIRECTORY_SEPARATOR;
-            if ($this->templates['APP_DIRS'] && is_dir($app_dir . 'templates')) {
-                array_push($this->template_dirs, $app_dir . 'templates');
+        if (defined('INSTALLED_APPS')) {
+            foreach (constant('INSTALLED_APPS') as $installed_app) {
+                $app_dir = $this->app_dir($installed_app);
+                if ($this->templates['APP_DIRS'] && is_dir($app_dir . 'templates')) {
+                    array_push($this->template_dirs, $app_dir . 'templates');
+                }
             }
         }
     }
 
     function get_global_context() {
         return $this->global_context;
+    }
+
+    function load_app($app_name) {
+        $app_files = ['models.php', 'views.php', 'urls.php'];
+        $app_dir = $this->app_dir($app_name);
+        foreach($app_files as $app_file) {
+            if (file_exists($app_dir . DIRECTORY_SEPARATOR . $app_file)) {
+                include_once($app_dir . DIRECTORY_SEPARATOR . $app_file);
+            }
+        }
+    }
+
+    function load_apps() {
+        if (defined('INSTALLED_APPS')) {
+            foreach (constant('INSTALLED_APPS') as $installed_app) {
+                $this->load_app($installed_app);
+            }
+        }
     }
 }
