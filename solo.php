@@ -3,7 +3,7 @@
  * The Solo Class fills in various pieces needed to tie things together.
  */
 
-class Solo {
+class Solo extends Silex\Application {
     var $base_dir = '';
     var $global_context = [];
     var $app_dirs = [];
@@ -25,6 +25,7 @@ class Solo {
                 $this->global_context[$var_key] = constant($load_var);
             }
         }
+        parent::__construct();
     }
 
     function app_dir($app_name) {
@@ -55,6 +56,8 @@ class Solo {
     }
 
     function load_app($app_name) {
+        // TODO: Make this so it doesn't need to be $app
+        global $app;
         $app_files = ['models.php', 'views.php', 'urls.php'];
         $app_dir = $this->app_dir($app_name);
         foreach($app_files as $app_file) {
