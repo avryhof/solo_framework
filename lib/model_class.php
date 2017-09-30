@@ -1,5 +1,12 @@
 <?php
 
+class Model extends BaseModel {
+    function __toString()
+    {
+        return 'Model';
+    }
+}
+
 class BaseModel {
     var $objects = null;
     var $table  = null;
@@ -7,11 +14,15 @@ class BaseModel {
     function __construct($table) {
         $this->table = $table;
 
-        $orm_db = new DB();
-        $this->objects = new DatabaseObject($orm_db, $this->table);
+        $this->objects = new DatabaseObject($this->table);
 
         foreach ($this as $key => $value) {
             print "$key => $value\n";
         }
+    }
+
+    function __toString()
+    {
+        return 'BaseModel';
     }
 }

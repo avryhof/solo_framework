@@ -6,14 +6,13 @@ class DB {
     var $prepared_statement = None;
     var $executed_statement = None;
 
-    function __construct() {
-        $dsn = "mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8";
-        $opt = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
-        $this->conn = new PDO($dsn, DB_USER, DB_PASS, $opt);
+    function __construct($db_key = 'default') {
+        $dsn  = DATABASES[$db_key]['ENGINE'].":";
+        $dsn .= "host=".DATABASES[$db_key]['HOST'].";";
+        $dsn .= "port=".DATABASES[$db_key]['PORT'].";";
+        $dsn .= "dbname=".DATABASES[$db_key]['NAME'].";";
+        $dsn .= "charset=".DATABASES[$db_key]['ENGINE'];
+        $this->conn = new PDO($dsn, DATABASES[$db_key]['USER'], DATABASES[$db_key]['PASSWORD'], DATABASES[$db_key]['OPTS']);
     }
 
     function escape($string) {
@@ -46,16 +45,18 @@ class DB {
 }
 
 class DatabaseObject {
-    var $table = None;
+    var $table = false;
     var $database;
     var $last_query = None;
     var $dataset = [];
     var $item = '';
     var $count = 0;
 
-    function __construct($database, $table) {
-        $this->database = $database;
-        $this->table = $table;
+    function __construct($table = false, $database = false) {
+        $this->database = (!$database ? new DB() : $database);
+        if (!$this->table && $table) {
+            $this->table = $table;
+        }
     }
 
     function buildquery($where) {

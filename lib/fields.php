@@ -16,13 +16,21 @@ class Field
         $db_index = false, $db_tablespace = null, $default = NOT_PROVIDED, $editable = true, $error_messages = null,
         $help_text = '', $max_length = null, $unique = false, $name = null, $null = false, $primary_key = false,
         $rel = null, $serialize = true, $unique_for_date = null, $unique_for_month = null, $unique_for_year = null,
-        $validators = [], $verbose_name = null;
+        $validators = [FILTER_DEFAULT], $verbose_name = null;
+
+    var $solo_validators = [
+        'FILTER_VALIDATE_TEXT' => '/^[\x20-\x7F]+$/',
+        'FILTER_VALIDATE_DECIMAL' => '/^[0-9]+\.?[0-9]*$/'
+    ];
 
     function __construct($fieldtype, $attributes = [])
     {
-        $this->name = 
+        $this->name =
         $this->fieldtype = $fieldtype;
         $this->attributes = $attributes;
+        if (isset($attributes['validators'])) {
+            $this->validators = array_merge($this->validators, $attributes['validators']);
+        }
 
         $required_attribs = $this->_check_required_attribs();
         if ($required_attribs !== true) {
@@ -97,19 +105,51 @@ class Field
         return get_class();
     }
 
-    function __toString()
+    function validate($value)
     {
-        $specialtypes = [
-            'null' => null,
-            'true' => true,
-            'false' => false
-        ];
-        if (in_array($specialtypes, $this->value)) {
-            return strval(array_search($specialtypes, $this->value));
-        } else {
-            return strval($this->value);
+        foreach ($this->validators as $validator) {
+            $validator_opts = [];
+
+            if (!is_numeric($validator)) {
+                $validator_opts = [
+                    "options" => [
+                        "regexp" => $this->solo_validators[$validator]
+                    ]
+                ];
+                $validator = FILTER_VALIDATE_REGEXP;
+            }
+            if (!filter_var($value, $validator, $validator_opts)) {
+                user_error('Invalid value for field ' . $this->fieldtype, E_USER_ERROR);
+                return false;
+            }
         }
+        return $value;
     }
+
+function get()
+{
+    return $this->value;
+}
+
+function set($value)
+{
+    $validated_value = $this->validate($value);
+    $this->value = $validated_value;
+}
+
+function __toString()
+{
+    $specialtypes = [
+        'null' => null,
+        'true' => true,
+        'false' => false
+    ];
+    if (in_array($specialtypes, $this->value)) {
+        return strval(array_search($specialtypes, $this->value));
+    } else {
+        return strval($this->value);
+    }
+}
 }
 
 class CharField extends Field
@@ -118,6 +158,9 @@ class CharField extends Field
     {
         $this->fieldtype = 'varchar';
         $this->required_attributes = ['max_length'];
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = ['FILTER_VALIDATE_TEXT'];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -128,6 +171,9 @@ class FixedCharField extends Field
     {
         $this->fieldtype = 'char';
         $this->required_attributes = ['max_length'];
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = ['FILTER_VALIDATE_TEXT'];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -137,6 +183,9 @@ class TextField extends Field
     function __construct(array $attributes = [])
     {
         $this->fieldtype = 'longtext';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = ['FILTER_VALIDATE_TEXT'];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -156,6 +205,9 @@ class IntegerField extends Field
     {
         $this->fieldtype = 'int';
         $this->required_attributes = ['max_length'];
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = [FILTER_VALIDATE_INT];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -172,7 +224,9 @@ class BooleanField extends Field
             'invalid' => _("'%(value)s' value must be either True or False.")
         ];
         $this->description = _("Boolean (Either True or False)");
-
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = [FILTER_VALIDATE_BOOLEAN];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -185,6 +239,9 @@ class FloatField extends Field
     function __construct($attributes = [])
     {
         $this->fieldtype = 'real';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = [FILTER_VALIDATE_FLOAT];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -197,6 +254,9 @@ class DoubleField extends Field
     function __construct($attributes = [])
     {
         $this->fieldtype = 'double';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = ['FILTER_VALIDATE_DECIMAL'];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -206,6 +266,9 @@ class BigIntegerField extends Field
     function __construct($attributes = [])
     {
         $this->fieldtype = 'bigint';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = [FILTER_VALIDATE_INT];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -215,6 +278,9 @@ class SmallIntegerField extends Field
     function __construct($attributes = [])
     {
         $this->fieldtype = 'smallint';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = [FILTER_VALIDATE_INT];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
@@ -227,6 +293,9 @@ class DecimalField extends Field
     function __construct($attributes = [])
     {
         $this->fieldtype = 'numeric';
+        if (!isset($attributes['validators'])) {
+            $this->attributes['validators'] = ['FILTER_VALIDATE_DECIMAL'];
+        }
         parent::__construct($this->fieldtype, $this->attributes);
     }
 }
